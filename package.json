@@ -1,0 +1,45 @@
+{
+  "name": "ldpos-chat",
+  "description": "A chat application with blockchain integration",
+  "version": "0.0.1",
+  "contributors": [
+    {
+      "name": "Jonathan Gros-Dubois",
+      "email": "grosjona@yahoo.com.au"
+    },
+    {
+      "name": "Maarten Coppens",
+      "email": "martinuske@gmail.com"
+    },
+    {
+      "name": "Johan Coppens",
+      "email": "johan.coppens@edugolo.be"
+    }
+  ],
+  "dependencies": {
+    "connect": "^3.6.6",
+    "eetase": "^4.0.0",
+    "express": "^4.16.3",
+    "morgan": "^1.7.0",
+    "nodemon": "^1.18.9",
+    "sc-errors": "^2.0.1",
+    "scc-broker-client": "^8.0.0",
+    "serve-static": "^1.13.2",
+    "socketcluster-client": "^16.0.1",
+    "socketcluster-server": "^16.0.0",
+    "uuid": "^3.3.2"
+  },
+  "keywords": [
+    "websocket",
+    "server",
+    "realtime",
+    "cluster",
+    "scalable"
+  ],
+  "readmeFilename": "README.md",
+  "scripts": {
+    "start": "node server.js",
+    "start:watch": "./node_modules/nodemon/bin/nodemon.js server.js",
+    "start:docker": "./node_modules/nodemon/bin/nodemon.js /usr/src/app/server.js"
+  }
+}
