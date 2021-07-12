@@ -7,26 +7,35 @@ const path = require('path');
 const morgan = require('morgan');
 const uuid = require('uuid');
 const sccBrokerClient = require('scc-broker-client');
-
-const ENVIRONMENT = process.env.ENV || 'dev';
-const SOCKETCLUSTER_PORT = process.env.SOCKETCLUSTER_PORT || 8000;
-const SOCKETCLUSTER_WS_ENGINE = process.env.SOCKETCLUSTER_WS_ENGINE || 'ws';
-const SOCKETCLUSTER_SOCKET_CHANNEL_LIMIT = Number(process.env.SOCKETCLUSTER_SOCKET_CHANNEL_LIMIT) || 1000;
-const SOCKETCLUSTER_LOG_LEVEL = process.env.SOCKETCLUSTER_LOG_LEVEL || 2;
-
+const middlewares = require('./modules/middlewares');
+const logger = require('./modules/logger');
 const SCC_INSTANCE_ID = uuid.v4();
-const SCC_STATE_SERVER_HOST = process.env.SCC_STATE_SERVER_HOST || null;
-const SCC_STATE_SERVER_PORT = process.env.SCC_STATE_SERVER_PORT || null;
-const SCC_MAPPING_ENGINE = process.env.SCC_MAPPING_ENGINE || null;
-const SCC_CLIENT_POOL_SIZE = process.env.SCC_CLIENT_POOL_SIZE || null;
-const SCC_AUTH_KEY = process.env.SCC_AUTH_KEY || null;
-const SCC_INSTANCE_IP = process.env.SCC_INSTANCE_IP || null;
-const SCC_INSTANCE_IP_FAMILY = process.env.SCC_INSTANCE_IP_FAMILY || null;
-const SCC_STATE_SERVER_CONNECT_TIMEOUT = Number(process.env.SCC_STATE_SERVER_CONNECT_TIMEOUT) || null;
-const SCC_STATE_SERVER_ACK_TIMEOUT = Number(process.env.SCC_STATE_SERVER_ACK_TIMEOUT) || null;
-const SCC_STATE_SERVER_RECONNECT_RANDOMNESS = Number(process.env.SCC_STATE_SERVER_RECONNECT_RANDOMNESS) || null;
-const SCC_PUB_SUB_BATCH_DURATION = Number(process.env.SCC_PUB_SUB_BATCH_DURATION) || null;
-const SCC_BROKER_RETRY_DELAY = Number(process.env.SCC_BROKER_RETRY_DELAY) || null;
+
+process.env = {
+  ...process.env,
+  ...(process.env.NODE_ENV === 'development'
+    ? require('./env.development.json')
+    : require('./env.production.json')),
+};
+
+const knex = require('knex')(
+  process.env.NODE_ENV === 'development'
+    ? {
+        client: 'sqlite3',
+        connection: {
+          filename: './dev.sqlite3',
+        },
+      }
+    : {
+        client: 'pg',
+        connection: {
+          host: '127.0.0.1',
+          user: 'your_database_user',
+          password: 'your_database_password',
+          database: 'myapp_test',
+        },
+      },
+);
 
 let agOptions = {};
 
@@ -38,8 +47,11 @@ if (process.env.SOCKETCLUSTER_OPTIONS) {
 let httpServer = eetase(http.createServer());
 let agServer = socketClusterServer.attach(httpServer, agOptions);
 
+// Initialize middlewares
+middlewares.init(agServer);
+
 let expressApp = express();
-if (ENVIRONMENT === 'dev') {
+if (process.env.NODE_ENV === 'development') {
   // Log every HTTP request. See https://github.com/expressjs/morgan for other
   // available formats.
   expressApp.use(morgan('dev'));
@@ -53,69 +65,70 @@ expressApp.get('/health-check', (req, res) => {
 
 // HTTP request handling loop.
 (async () => {
-  for await (let requestData of httpServer.listener('request')) {
+  for await (const requestData of httpServer.listener('request')) {
     expressApp.apply(null, requestData);
   }
 })();
 
 // SocketCluster/WebSocket connection handling loop.
 (async () => {
-  for await (let {socket} of agServer.listener('connection')) {
-    // Handle socket connection.
+  for await (const { socket } of agServer.listener('connection')) {
+    // TODO: Handle channel names for specific user
+    // TODO: Handle history for opened channel
+    // TODO:
+    (async () => {
+      for await (const request of socket.procedure('channels')) {
+        const channels = await knex('channels').select('*');
+        console.log(channels);
+        request.end(channels);
+      }
+    })();
+
+    (async () => {
+      for await (const request of socket.procedure('users')) {
+        const users = await knex('users').select('*');
+        console.log(users);
+        request.end(users);
+      }
+    })();
+
+    (async () => {
+      for await (const request of socket.procedure('messages')) {
+        const messages = await knex('messages').select('*');
+        console.log(messages);
+        request.end(messages);
+      }
+    })();
   }
 })();
 
-httpServer.listen(SOCKETCLUSTER_PORT);
+httpServer.listen(process.env.SOCKETCLUSTER_PORT);
 
-if (SOCKETCLUSTER_LOG_LEVEL >= 1) {
-  (async () => {
-    for await (let {error} of agServer.listener('error')) {
-      console.error(error);
-    }
-  })();
-}
+logger.init(agServer);
 
-if (SOCKETCLUSTER_LOG_LEVEL >= 2) {
-  console.log(
-    `   ${colorText('[Active]', 32)} SocketCluster worker with PID ${process.pid} is listening on port ${SOCKETCLUSTER_PORT}`
-  );
-
-  (async () => {
-    for await (let {warning} of agServer.listener('warning')) {
-      console.warn(warning);
-    }
-  })();
-}
-
-function colorText(message, color) {
-  if (color) {
-    return `\x1b[${color}m${message}\x1b[0m`;
-  }
-  return message;
-}
-
-if (SCC_STATE_SERVER_HOST) {
+if (process.env.SCC_STATE_SERVER_HOST) {
   // Setup broker client to connect to SCC.
   let sccClient = sccBrokerClient.attach(agServer.brokerEngine, {
     instanceId: SCC_INSTANCE_ID,
-    instancePort: SOCKETCLUSTER_PORT,
-    instanceIp: SCC_INSTANCE_IP,
-    instanceIpFamily: SCC_INSTANCE_IP_FAMILY,
-    pubSubBatchDuration: SCC_PUB_SUB_BATCH_DURATION,
-    stateServerHost: SCC_STATE_SERVER_HOST,
-    stateServerPort: SCC_STATE_SERVER_PORT,
-    mappingEngine: SCC_MAPPING_ENGINE,
-    clientPoolSize: SCC_CLIENT_POOL_SIZE,
-    authKey: SCC_AUTH_KEY,
-    stateServerConnectTimeout: SCC_STATE_SERVER_CONNECT_TIMEOUT,
-    stateServerAckTimeout: SCC_STATE_SERVER_ACK_TIMEOUT,
-    stateServerReconnectRandomness: SCC_STATE_SERVER_RECONNECT_RANDOMNESS,
-    brokerRetryDelay: SCC_BROKER_RETRY_DELAY
+    instancePort: process.env.SOCKETCLUSTER_PORT,
+    instanceIp: process.env.SCC_INSTANCE_IP,
+    instanceIpFamily: process.env.SCC_INSTANCE_IP_FAMILY,
+    pubSubBatchDuration: process.env.SCC_PUB_SUB_BATCH_DURATION,
+    stateServerHost: process.env.SCC_STATE_SERVER_HOST,
+    stateServerPort: process.env.SCC_STATE_SERVER_PORT,
+    mappingEngine: process.env.SCC_MAPPING_ENGINE,
+    clientPoolSize: process.env.SCC_CLIENT_POOL_SIZE,
+    authKey: process.env.SCC_AUTH_KEY,
+    stateServerConnectTimeout: process.env.SCC_STATE_SERVER_CONNECT_TIMEOUT,
+    stateServerAckTimeout: process.env.SCC_STATE_SERVER_ACK_TIMEOUT,
+    stateServerReconnectRandomness:
+      process.env.SCC_STATE_SERVER_RECONNECT_RANDOMNESS,
+    brokerRetryDelay: process.env.SCC_BROKER_RETRY_DELAY,
   });
 
   if (SOCKETCLUSTER_LOG_LEVEL >= 1) {
     (async () => {
-      for await (let {error} of sccClient.listener('error')) {
+      for await (let { error } of sccClient.listener('error')) {
         error.name = 'SCCError';
         console.error(error);
       }

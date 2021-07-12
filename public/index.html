@@ -2,80 +2,181 @@
 <html>
   <head>
     <title>SocketCluster</title>
-    <link href="//fonts.googleapis.com/css?family=Roboto:100,300" rel="stylesheet" type="text/css">
-    <link rel="icon" type="image/png" href="/favicon.ico">
+    <link
+      href="//fonts.googleapis.com/css?family=Roboto:100,300"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link rel="icon" type="image/png" href="/favicon.ico" />
     <script type="text/javascript" src="/socketcluster-client.js"></script>
     <style>
-      html {
-        height: 100%;
-      }
-      body {
+      * {
         margin: 0;
         padding: 0;
+      }
+
+      html {
+        height: 100vh;
+        width: 100vw;
+      }
+
+      .container {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+
+      .chat-history {
+        height: 70vh;
+        width: 75%;
+        border: 1px solid #000;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+      }
+
+      .chat-input {
+        width: 75%;
+        height: 5vh;
+        border-left: 1px solid #000;
+        border-bottom: 1px solid #000;
+        border-right: 1px solid #000;
+      }
+
+      input {
+        box-sizing: border-box;
         width: 100%;
         height: 100%;
-        color: #666666;
-        display: table;
-        font-weight: 100;
-        font-family: 'Roboto', Helvetica, sans-serif;
+        border: none;
+        padding: 0 1em;
       }
-      a {
-        font-weight: 300;
-        color: #72B963;
+
+      strong,
+      small {
+        font-size: 11px;
+        color: gray;
       }
-      .container {
-        display: table-cell;
-        text-align: center;
-        vertical-align: middle;
-      }
-      .content {
-        text-align: center;
-        display: inline-block;
-      }
-      .title {
-        font-size: 96px;
-        margin-bottom: 10px;
-      }
-      .text {
-        font-size: 24px;
-        margin-bottom: 20px;
-      }
-      .small {
-        font-size: 18px;
-      }
-      .github-button {
-        padding-top: 10px;
+
+      .message {
+        padding: 0.25rem 1rem;
       }
     </style>
   </head>
   <body>
+    <button onclick="getChannels()">Get Channels</button>
+    <button onclick="getUsers()">Get Users</button>
+    <button onclick="getMessages()">Get Messages</button>
+    <div id="channels"></div>
     <div class="container">
-      <div class="content">
-        <div class="title">
-          SocketCluster
-        </div>
-        <div class="small">
-          <a href="https://socketcluster.io/docs/guides/">Guides</a> <strong>&middot;</strong>
-          <a href="https://socketcluster.io/docs/api/">API Docs</a>
-        </div>
-        <p class="github-button">
-          <iframe src="https://ghbtns.com/github-btn.html?user=socketcluster&repo=socketcluster&type=star&count=true&size=large" frameborder="0" scrolling="0" width="160px" height="30px"></iframe>
-        </p>
+      <div id="chat-history" class="chat-history"></div>
+      <div class="chat-input">
+        <input placeholder="message" onkeyup="sendMessage(event)" />
       </div>
     </div>
     <script type="text/javascript">
       // Initiate the connection to the server
       let socket = socketClusterClient.create();
 
+      const messageHistory = [];
+
+      const _parseDate = (d) => {
+        if (!d) return;
+        d = new Date(d);
+        const today = new Date();
+
+        const isToday =
+          d.getDate() == today.getDate() &&
+          d.getMonth() == today.getMonth() &&
+          d.getFullYear() == today.getFullYear();
+
+        const options = {
+          timeStyle: 'short',
+        };
+
+        if (!isToday) options.dateStyle = 'short';
+
+        return new Intl.DateTimeFormat('en-US', options).format(d);
+      };
+
+      const sendMessage = async (event) => {
+        if (event.keyCode === 13) {
+          try {
+            await socket.transmitPublish('chat', {
+              timestamp: _parseDate(Date.now()),
+              message: event.target.value,
+              socketId: socket.id,
+            });
+            event.target.value = '';
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      };
+
+      const getChannels = async () => {
+        console.log('hit channels')
+        const channels = await socket.invoke('channels');
+        console.log(channels)
+
+        const channelElement = document.getElementById('channels');
+        const ul = document.createElement('ul');
+        for (let i = 0; i < channels.length; i++) {
+          const channel = channels[i];
+          const li = document.createElement('li');
+          ul.appendChild(li);
+        }
+        channelElement.appendChild(ul);
+      };
+
+      const getMessages = async () => {
+        console.log('hit messages')
+        const messages = await socket.invoke('messages');
+        console.log(messages);
+      };
+
+      const getUsers = async () => {
+        console.log('hit users')
+        const users = await socket.invoke('users');
+        console.log(users);
+      };
+
+      const createMessage = ({ socketId, timestamp, message }) => {
+        const chatHistoryElement = document.getElementById('chat-history');
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message';
+        messageElement.innerHTML = `<strong>${socketId}</strong> <small>${timestamp}:</small> ${message}`;
+
+        chatHistoryElement.appendChild(messageElement);
+
+        chatHistoryElement.scrollTop = chatHistoryElement.scrollHeight;
+      };
+
       (async () => {
-        for await (let {error} of socket.listener('error')) {
+        for await (const data of socket.subscribe('chat')) {
+          createMessage(data);
+        }
+      })();
+
+      (async () => {
+        for await (let { error } of socket.listener('error')) {
           console.error(error);
         }
       })();
 
       (async () => {
+        for await (let data of socket.receiver('history')) {
+          for (let i = 0; i < data.length; i++) {
+            const m = data[i];
+            createMessage(m);
+          }
+        }
+      })();
+
+      (async () => {
         for await (let event of socket.listener('connect')) {
-          console.log('Socket is connected');
+          console.log('Socket is connected:', socket.id);
         }
       })();
     </script>
