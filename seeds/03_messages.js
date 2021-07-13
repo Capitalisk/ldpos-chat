@@ -12,6 +12,8 @@ exports.seed = function (knex) {
     .then(async function () {
       const entries = [];
 
+      if (!ENV.DB.ENTRY_COUNT_PER_TABLE) return;
+
       // Direct messages
       for (let i = 0; i < ENV.DB.ENTRY_COUNT_PER_TABLE; i++) {
         const fromRandomNumber = Math.floor(
@@ -25,23 +27,30 @@ exports.seed = function (knex) {
 
         entries.push({
           id: uuidv4(),
-          message: faker.lorem.words,
+          message: faker.lorem.words(),
           from_user_id: users[fromRandomNumber].id,
-          to_random_user: users[toRandomNumber].id,
+          to_user_id: users[toRandomNumber].id,
         });
       }
+
+      return knex('messages').insert(entries);
+    })
+    .then(async function () {
+      const entries = [];
+
+      if (!ENV.DB.ENTRY_COUNT_PER_TABLE) return;
 
       // Channel messages
       for (let i = 0; i < ENV.DB.ENTRY_COUNT_PER_TABLE; i++) {
         const randomNumber = Math.floor(
           Math.random() * ENV.DB.ENTRY_COUNT_PER_TABLE,
         );
-        const randomChannel = await knex('channel').select('*')[randomNumber];
+        const channels = await knex('channels').select('*');
 
         entries.push({
           id: uuidv4(),
-          message: faker.lorem.words,
-          channel_id: randomChannel.id,
+          message: faker.lorem.words(),
+          channel_id: channels[randomNumber].id,
         });
       }
 

@@ -12,6 +12,7 @@ exports.seed = function (knex) {
     .then(async function () {
       const entries = [];
 
+      if(!ENV.DB.ENTRY_COUNT_PER_TABLE) return
       for (let i = 0; i < ENV.DB.ENTRY_COUNT_PER_TABLE; i++) {
         const randomNumber = Math.floor(
           Math.random() * ENV.DB.ENTRY_COUNT_PER_TABLE,
@@ -20,7 +21,7 @@ exports.seed = function (knex) {
 
         entries.push({
           id: uuidv4(),
-          channel: faker.lorem.word,
+          channel: faker.lorem.word(),
           user_id: users[randomNumber].id,
         });
       }
