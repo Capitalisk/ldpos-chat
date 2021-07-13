@@ -21,7 +21,7 @@ exports.seed = function (knex) {
 
         entries.push({
           id: uuidv4(),
-          channel: faker.lorem.word(),
+          name: faker.lorem.word(),
           user_id: users[randomNumber].id,
         });
       }
