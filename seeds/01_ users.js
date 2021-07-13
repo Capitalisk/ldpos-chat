@@ -12,7 +12,8 @@ exports.seed = function (knex) {
     .then(function () {
       const entries = [];
 
-      if(!ENV.DB.ENTRY_COUNT_PER_TABLE) return
+      if (!ENV.DB.ENTRY_COUNT_PER_TABLE) return;
+
       for (let i = 0; i < ENV.DB.ENTRY_COUNT_PER_TABLE; i++) {
         entries.push({
           id: uuidv4(),

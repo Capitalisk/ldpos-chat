@@ -1,6 +1,8 @@
 const uuidv4 = require('uuid').v4;
 const faker = require('faker');
 
+const { randomNumber } = require('./lib')
+
 const ENV =
   process.env.NODE_ENV === 'development'
     ? require('../env.development.json')
@@ -14,22 +16,15 @@ exports.seed = function (knex) {
 
       if (!ENV.DB.ENTRY_COUNT_PER_TABLE) return;
 
+      const users = await knex('users').select('*');
+
       // Direct messages
       for (let i = 0; i < ENV.DB.ENTRY_COUNT_PER_TABLE; i++) {
-        const fromRandomNumber = Math.floor(
-          Math.random() * ENV.DB.ENTRY_COUNT_PER_TABLE,
-        );
-        const toRandomNumber = Math.floor(
-          Math.random() * ENV.DB.ENTRY_COUNT_PER_TABLE,
-        );
-
-        const users = await knex('users').select('*');
-
         entries.push({
           id: uuidv4(),
           message: faker.lorem.words(),
-          from_user_id: users[fromRandomNumber].id,
-          to_user_id: users[toRandomNumber].id,
+          from_user_id: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
+          owner_id: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
         });
       }
 
@@ -40,17 +35,16 @@ exports.seed = function (knex) {
 
       if (!ENV.DB.ENTRY_COUNT_PER_TABLE) return;
 
+      const users = await knex('users').select('*');
+      const channels = await knex('channels').select('*');
+
       // Channel messages
       for (let i = 0; i < ENV.DB.ENTRY_COUNT_PER_TABLE; i++) {
-        const randomNumber = Math.floor(
-          Math.random() * ENV.DB.ENTRY_COUNT_PER_TABLE,
-        );
-        const channels = await knex('channels').select('*');
-
         entries.push({
           id: uuidv4(),
           message: faker.lorem.words(),
-          channel_id: channels[randomNumber].id,
+          channel_id: channels[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
+          owner_id: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
         });
       }
 
