@@ -116,29 +116,31 @@
       };
 
       const getChannels = async () => {
-        console.log('hit channels')
-        const channels = await socket.invoke('channels');
-        console.log(channels)
+        console.log('hit channels');
+        const userId = await socket.invoke('development/user');
+        console.log(userId)
+        const channels = await socket.invoke('channels/user', { id: userId });
+        console.log(channels);
 
         const channelElement = document.getElementById('channels');
         const ul = document.createElement('ul');
         for (let i = 0; i < channels.length; i++) {
           const channel = channels[i];
           const li = document.createElement('li');
-          li.innerText = channel.name
+          li.innerText = channel.name;
           ul.appendChild(li);
         }
         channelElement.appendChild(ul);
       };
 
       const getMessages = async () => {
-        console.log('hit messages')
+        console.log('hit messages');
         const messages = await socket.invoke('messages');
         console.log(messages);
       };
 
       const getUsers = async () => {
-        console.log('hit users')
+        console.log('hit users');
         const users = await socket.invoke('users');
         console.log(users);
       };

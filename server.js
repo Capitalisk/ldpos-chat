@@ -77,10 +77,11 @@ expressApp.get('/health-check', (req, res) => {
     // TODO: Handle history for opened channel
     // TODO:
     (async () => {
-      for await (const request of socket.procedure('channels')) {
-        const channels = await knex('channels').select('*');
-        console.log(channels);
-        request.end(channels);
+      for await (const request of socket.procedure('development/user')) {
+        if (process.env.NODE_ENV !== 'development') return;
+        const users = await knex('users').select('*');
+        console.log(users[0]);
+        request.end(users[0].id);
       }
     })();
 
@@ -97,6 +98,20 @@ expressApp.get('/health-check', (req, res) => {
         const messages = await knex('messages').select('*');
         console.log(messages);
         request.end(messages);
+      }
+    })();
+
+    (async () => {
+      for await (const request of socket.procedure('channels/user')) {
+        const channels = await knex('users_channels')
+          .select('*')
+          .leftJoin('users', 'users_channels.user_id', 'users.id')
+          .leftJoin('channels', 'users_channels.channel_id', 'channels.id')
+          .where({
+            user_id: request.data.id,
+          });
+        console.log(channels);
+        request.end(channels);
       }
     })();
   }
