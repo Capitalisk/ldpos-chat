@@ -12,7 +12,7 @@ exports.seed = function (knex) {
     .then(function () {
       const entries = [];
 
-      if (!ENV.DB.ENTRY_COUNT_PER_TABLE) return;
+      if (!ENV.SEED.ENTRY_COUNT_PER_TABLE) return;
 
       // Test user
       entries.push({
@@ -21,7 +21,7 @@ exports.seed = function (knex) {
         password: 'password',
       });
 
-      for (let i = 0; i < ENV.DB.ENTRY_COUNT_PER_TABLE; i++) {
+      for (let i = 0; i < ENV.SEED.ENTRY_COUNT_PER_TABLE; i++) {
         entries.push({
           id: uuidv4(),
           username: `${faker.name.firstName()}${faker.name.lastName()}`,

@@ -87,50 +87,6 @@ expressApp.get('/health-check', (req, res) => {
     // TODO: Handle channel names for specific user
     // TODO: Handle history for opened channel
     // TODO:
-    // (async () => {
-    //   for await (const request of socket.procedure('development/user')) {
-    //     if (process.env.NODE_ENV !== 'development') return;
-    //     const users = await knex('users').select('*');
-    //     console.log(users[0]);
-    //     request.end(users[0].id);
-    //   }
-    // })();
-
-    (async () => {
-      for await (const request of socket.procedure('users')) {
-        const users = await knex('users').select('*');
-        console.log(users);
-        request.end(users);
-      }
-    })();
-
-    (async () => {
-      for await (const request of socket.procedure('channels/messages')) {
-        console.log(request.data.id);
-
-        const messages = await knex('messages')
-          .select('*')
-          .where({ channelId: request.data.id })
-          .leftJoin('users', 'messages.ownerId', 'users.id');
-
-        console.log(messages);
-        request.end(messages);
-      }
-    })();
-
-    (async () => {
-      for await (const request of socket.procedure('channels/user')) {
-        const channels = await knex('usersChannels')
-          .select('*')
-          .leftJoin('users', 'usersChannels.userId', 'users.id')
-          .leftJoin('channels', 'usersChannels.channelId', 'channels.id')
-          .where({
-            userId: request.data.id,
-          });
-        console.log(channels);
-        request.end(channels);
-      }
-    })();
   }
 })();
 

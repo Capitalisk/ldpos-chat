@@ -4,7 +4,7 @@ exports.up = function (knex) {
     table.string('message').notNullable();
 
     table
-      .uuid('fromUserId')
+      .uuid('toUserId')
       .references('id')
       .inTable('users')
       .nullable()
@@ -23,8 +23,11 @@ exports.up = function (knex) {
       .nullable()
       .onDelete('cascade');
 
+    table.timestamp('readAt').nullable();
+
     table.timestamp('createdAt').defaultTo(knex.fn.now());
     table.timestamp('updatedAt').defaultTo(knex.fn.now());
+    table.timestamp('deletedAt').nullable();
   });
 };
 

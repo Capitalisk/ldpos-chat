@@ -8,7 +8,7 @@ const ENV =
     ? require('../env.development.json')
     : require('../env.production.json');
 
-count = ENV.DB.MESSAGE_COUNT_PER_TABLE && ENV.DB.MESSAGE_COUNT_PER_TABLE / 2;
+count = ENV.SEED.MESSAGE_COUNT_PER_TABLE && ENV.SEED.MESSAGE_COUNT_PER_TABLE / 2;
 
 exports.seed = function (knex) {
   return knex('messages')
@@ -25,8 +25,9 @@ exports.seed = function (knex) {
         entries.push({
           id: uuidv4(),
           message: faker.lorem.words(),
-          fromUserId: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
-          ownerId: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
+          toUserId: users[randomNumber(ENV.SEED.ENTRY_COUNT_PER_TABLE)].id,
+          ownerId: users[randomNumber(ENV.SEED.ENTRY_COUNT_PER_TABLE)].id,
+          readAt: null
         });
       }
 
@@ -45,8 +46,9 @@ exports.seed = function (knex) {
         entries.push({
           id: uuidv4(),
           message: faker.lorem.words(),
-          channelId: channels[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
-          ownerId: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
+          channelId: channels[randomNumber(ENV.SEED.ENTRY_COUNT_PER_TABLE)].id,
+          ownerId: users[randomNumber(ENV.SEED.ENTRY_COUNT_PER_TABLE)].id,
+          readAt: null
         });
       }
 

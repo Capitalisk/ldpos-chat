@@ -77,8 +77,7 @@
     </div>
     <div>
       <button onclick="getChannels()">Get Channels</button>
-      <button onclick="getUsers()">Get Users</button>
-      <button onclick="getMessages()">Get Messages</button>
+      <button onclick="getFriends()">Get Friends</button>
     </div>
     <div id="channels"></div>
     <div class="container">
@@ -129,31 +128,25 @@
 
       const getChannels = async () => {
         console.log('hit channels');
-        const channels = await socket.invoke('channels/user', {
+        const channelElement = document.getElementById('channels');
+        channelElement.innerHTML = '';
+        const channels = await socket.invoke('user/channel', {
           id: socket.authToken.id,
         });
 
-        const channelElement = document.getElementById('channels');
         const ul = document.createElement('ul');
         for (let i = 0; i < channels.length; i++) {
           const channel = channels[i];
           const li = document.createElement('li');
           li.addEventListener('click', async () => {
             document.getElementById('chat-history').innerHTML = '';
-            const messages = await socket.invoke('channels/messages', {
+            const messages = await socket.invoke('messages/channel', {
               id: channel.id,
             });
             console.log(messages);
-            messages
-              .sort((a, b) => {
-                a = new Date(a);
-                b = new Date(b);
-                if (a < b) return 1;
-                else return -1;
-              })
-              .forEach((m) => {
-                createMessage(m);
-              });
+            messages.forEach((m) => {
+              createMessage(m);
+            });
           });
           li.innerText = channel.name;
           ul.appendChild(li);
@@ -161,16 +154,31 @@
         channelElement.appendChild(ul);
       };
 
-      const getMessages = async () => {
-        console.log('hit messages');
-        const messages = await socket.invoke('messages');
-        console.log(messages);
-      };
-
-      const getUsers = async () => {
+      const getFriends = async () => {
         console.log('hit users');
-        const users = await socket.invoke('users');
-        console.log(users);
+        const users = await socket.invoke('users/friends');
+        const channelElement = document.getElementById('channels');
+        channelElement.innerHTML = '';
+
+        const ul = document.createElement('ul');
+        for (let i = 0; i < users.length; i++) {
+          const user = users[i];
+          const li = document.createElement('li');
+          li.addEventListener('click', async () => {
+            document.getElementById('chat-history').innerHTML = '';
+            const messages = await socket.invoke('messages/private', {
+              id: user.id,
+            });
+            console.log(messages);
+
+            messages.forEach((m) => {
+              createMessage(m);
+            });
+          });
+          li.innerText = user.username;
+          ul.appendChild(li);
+        }
+        channelElement.appendChild(ul);
       };
 
       const createMessage = ({ username, createdAt, message }) => {

@@ -5,6 +5,7 @@ exports.up = function (knex) {
     table.uuid('ownerId').references('id').inTable('users').onDelete('cascade');
     table.timestamp('createdAt').defaultTo(knex.fn.now());
     table.timestamp('updatedAt').defaultTo(knex.fn.now());
+    table.timestamp('deletedAt').nullable();
   });
 };
 
