@@ -129,16 +129,32 @@
 
       const getChannels = async () => {
         console.log('hit channels');
-        const userId = await socket.invoke('development/user');
-        console.log(userId);
-        const channels = await socket.invoke('channels/user', { id: userId });
-        console.log(channels);
+        const channels = await socket.invoke('channels/user', {
+          id: socket.authToken.id,
+        });
 
         const channelElement = document.getElementById('channels');
         const ul = document.createElement('ul');
         for (let i = 0; i < channels.length; i++) {
           const channel = channels[i];
           const li = document.createElement('li');
+          li.addEventListener('click', async () => {
+            document.getElementById('chat-history').innerHTML = '';
+            const messages = await socket.invoke('channels/messages', {
+              id: channel.id,
+            });
+            console.log(messages);
+            messages
+              .sort((a, b) => {
+                a = new Date(a);
+                b = new Date(b);
+                if (a < b) return 1;
+                else return -1;
+              })
+              .forEach((m) => {
+                createMessage(m);
+              });
+          });
           li.innerText = channel.name;
           ul.appendChild(li);
         }
@@ -157,11 +173,11 @@
         console.log(users);
       };
 
-      const createMessage = ({ socketId, timestamp, message }) => {
+      const createMessage = ({ username, createdAt, message }) => {
         const chatHistoryElement = document.getElementById('chat-history');
         const messageElement = document.createElement('div');
         messageElement.className = 'message';
-        messageElement.innerHTML = `<strong>${socketId}</strong> <small>${timestamp}:</small> ${message}`;
+        messageElement.innerHTML = `<strong>${username}</strong> <small>${createdAt}:</small> ${message}`;
 
         chatHistoryElement.appendChild(messageElement);
 
@@ -174,7 +190,7 @@
         const password = document.getElementById('password').value;
         const auth = await socket.invoke('login', { username, password });
 
-        console.log(auth)
+        console.log(auth);
       };
 
       (async () => {

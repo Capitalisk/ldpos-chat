@@ -23,8 +23,8 @@ exports.seed = function (knex) {
         entries.push({
           id: uuidv4(),
           message: faker.lorem.words(),
-          from_user_id: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
-          owner_id: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
+          fromUserId: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
+          ownerId: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
         });
       }
 
@@ -43,8 +43,8 @@ exports.seed = function (knex) {
         entries.push({
           id: uuidv4(),
           message: faker.lorem.words(),
-          channel_id: channels[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
-          owner_id: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
+          channelId: channels[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
+          ownerId: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
         });
       }
 

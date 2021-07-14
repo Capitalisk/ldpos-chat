@@ -22,7 +22,7 @@ exports.seed = function (knex) {
         entries.push({
           id: uuidv4(),
           name: faker.lorem.word(),
-          owner_id: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
+          ownerId: users[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
         });
       }
 

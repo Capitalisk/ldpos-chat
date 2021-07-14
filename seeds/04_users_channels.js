@@ -8,7 +8,7 @@ const ENV =
     : require('../env.production.json');
 
 exports.seed = function (knex) {
-  return knex('users_channels')
+  return knex('usersChannels')
     .del()
     .then(async function () {
       const entries = [];
@@ -23,12 +23,12 @@ exports.seed = function (knex) {
         for (let i = 0; i < ENV.DB.CHANNEL_USER_COUNT; i++) {
           entries.push({
             id: uuidv4(),
-            user_id: user.id,
-            channel_id: channels[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
+            userId: user.id,
+            channelId: channels[i].id,
           });
         }
       }
 
-      return knex('users_channels').insert(entries);
+      return knex.batchInsert('usersChannels', entries);
     });
 };

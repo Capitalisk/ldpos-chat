@@ -1,9 +1,9 @@
 exports.up = function (knex) {
-  return knex.schema.createTable('users_channels', (table) => {
+  return knex.schema.createTable('usersChannels', (table) => {
     table.uuid('id').primary();
-    table.uuid('user_id').references('id').inTable('users').onDelete('cascade');
+    table.uuid('userId').references('id').inTable('users').onDelete('cascade');
     table
-      .uuid('channel_id')
+      .uuid('channelId')
       .references('id')
       .inTable('channels')
       .onDelete('cascade');
@@ -11,5 +11,5 @@ exports.up = function (knex) {
 };
 
 exports.down = function (knex) {
-  return knex.schema.dropTable('users_channels');
+  return knex.schema.dropTable('usersChannels');
 };

@@ -4,27 +4,27 @@ exports.up = function (knex) {
     table.string('message').notNullable();
 
     table
-      .uuid('from_user_id')
+      .uuid('fromUserId')
       .references('id')
       .inTable('users')
       .nullable()
       .onDelete('cascade');
 
     table
-      .uuid('owner_id')
+      .uuid('ownerId')
       .references('id')
-      .inTable('users_channels')
+      .inTable('usersChannels')
       .onDelete('cascade');
 
     table
-      .uuid('channel_id')
+      .uuid('channelId')
       .references('id')
       .inTable('channels')
       .nullable()
       .onDelete('cascade');
 
-    table.timestamp('created_at').defaultTo(knex.fn.now());
-    table.timestamp('updated_at').defaultTo(knex.fn.now());
+    table.timestamp('createdAt').defaultTo(knex.fn.now());
+    table.timestamp('updatedAt').defaultTo(knex.fn.now());
   });
 };
 

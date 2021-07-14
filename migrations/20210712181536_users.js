@@ -3,9 +3,9 @@ exports.up = function (knex) {
     table.uuid('id').primary();
     table.string('username').notNullable();
     table.string('password').notNullable();
-    table.string('wallet_address');
-    table.timestamp('created_at').defaultTo(knex.fn.now());
-    table.timestamp('updated_at').defaultTo(knex.fn.now());
+    table.string('walletAddress');
+    table.timestamp('createdAt').defaultTo(knex.fn.now());
+    table.timestamp('updatedAt').defaultTo(knex.fn.now());
   });
 };
 

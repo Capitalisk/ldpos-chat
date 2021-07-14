@@ -87,14 +87,14 @@ expressApp.get('/health-check', (req, res) => {
     // TODO: Handle channel names for specific user
     // TODO: Handle history for opened channel
     // TODO:
-    (async () => {
-      for await (const request of socket.procedure('development/user')) {
-        if (process.env.NODE_ENV !== 'development') return;
-        const users = await knex('users').select('*');
-        console.log(users[0]);
-        request.end(users[0].id);
-      }
-    })();
+    // (async () => {
+    //   for await (const request of socket.procedure('development/user')) {
+    //     if (process.env.NODE_ENV !== 'development') return;
+    //     const users = await knex('users').select('*');
+    //     console.log(users[0]);
+    //     request.end(users[0].id);
+    //   }
+    // })();
 
     (async () => {
       for await (const request of socket.procedure('users')) {
@@ -105,8 +105,14 @@ expressApp.get('/health-check', (req, res) => {
     })();
 
     (async () => {
-      for await (const request of socket.procedure('messages')) {
-        const messages = await knex('messages').select('*');
+      for await (const request of socket.procedure('channels/messages')) {
+        console.log(request.data.id);
+
+        const messages = await knex('messages')
+          .select('*')
+          .where({ channelId: request.data.id })
+          .leftJoin('users', 'messages.ownerId', 'users.id');
+
         console.log(messages);
         request.end(messages);
       }
@@ -114,12 +120,12 @@ expressApp.get('/health-check', (req, res) => {
 
     (async () => {
       for await (const request of socket.procedure('channels/user')) {
-        const channels = await knex('users_channels')
+        const channels = await knex('usersChannels')
           .select('*')
-          .leftJoin('users', 'users_channels.user_id', 'users.id')
-          .leftJoin('channels', 'users_channels.channel_id', 'channels.id')
+          .leftJoin('users', 'usersChannels.userId', 'users.id')
+          .leftJoin('channels', 'usersChannels.channelId', 'channels.id')
           .where({
-            user_id: request.data.id,
+            userId: request.data.id,
           });
         console.log(channels);
         request.end(channels);
