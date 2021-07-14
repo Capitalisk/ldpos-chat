@@ -20,15 +20,19 @@ exports.seed = function (knex) {
 
       for (let idx = 0; idx < users.length; idx++) {
         const user = users[idx];
-        for (let i = 0; i < ENV.DB.CHANNEL_USER_COUNT; i++) {
+        for (let i = 0; i < ENV.DB.ENTRY_COUNT_PER_TABLE; i++) {
           entries.push({
             id: uuidv4(),
             userId: user.id,
-            channelId: channels[i].id,
+            channelId: channels[randomNumber(ENV.DB.ENTRY_COUNT_PER_TABLE)].id,
           });
         }
       }
 
-      return knex.batchInsert('usersChannels', entries);
+      return knex.batchInsert(
+        'usersChannels',
+        entries,
+        ENV.DB.ENTRY_COUNT_PER_TABLE,
+      );
     });
 };
