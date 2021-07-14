@@ -65,9 +65,21 @@
     </style>
   </head>
   <body>
-    <button onclick="getChannels()">Get Channels</button>
-    <button onclick="getUsers()">Get Users</button>
-    <button onclick="getMessages()">Get Messages</button>
+    <div>
+      <input placeholder="username" value="ldpostestuser" id="username" />
+      <input
+        type="password"
+        placeholder="password"
+        value="password"
+        id="password"
+      />
+      <button onclick="login()">Login</button>
+    </div>
+    <div>
+      <button onclick="getChannels()">Get Channels</button>
+      <button onclick="getUsers()">Get Users</button>
+      <button onclick="getMessages()">Get Messages</button>
+    </div>
     <div id="channels"></div>
     <div class="container">
       <div id="chat-history" class="chat-history"></div>
@@ -118,7 +130,7 @@
       const getChannels = async () => {
         console.log('hit channels');
         const userId = await socket.invoke('development/user');
-        console.log(userId)
+        console.log(userId);
         const channels = await socket.invoke('channels/user', { id: userId });
         console.log(channels);
 
@@ -154,6 +166,15 @@
         chatHistoryElement.appendChild(messageElement);
 
         chatHistoryElement.scrollTop = chatHistoryElement.scrollHeight;
+      };
+
+      const login = async () => {
+        console.log('hit login');
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const auth = await socket.invoke('login', { username, password });
+
+        console.log(auth)
       };
 
       (async () => {

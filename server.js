@@ -7,8 +7,9 @@ const path = require('path');
 const morgan = require('morgan');
 const uuid = require('uuid');
 const sccBrokerClient = require('scc-broker-client');
-const middlewares = require('./modules/middlewares');
-const logger = require('./modules/logger');
+const middlewares = require('./system/middlewares');
+const logger = require('./system/logger');
+const fs = require('fs');
 const SCC_INSTANCE_ID = uuid.v4();
 
 process.env = {
@@ -73,6 +74,16 @@ expressApp.get('/health-check', (req, res) => {
 // SocketCluster/WebSocket connection handling loop.
 (async () => {
   for await (const { socket } of agServer.listener('connection')) {
+    fs.readdir('./modules', null, (err, modules) => {
+      if (err) throw new Error(err);
+      if (!modules) return;
+      console.log(modules);
+      for (let i = 0; i < modules.length; i++) {
+        const m = modules[i];
+        require(`./modules/${m}`).attach(agServer, socket, knex);
+      }
+    });
+
     // TODO: Handle channel names for specific user
     // TODO: Handle history for opened channel
     // TODO:

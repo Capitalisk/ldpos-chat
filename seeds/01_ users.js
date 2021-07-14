@@ -14,6 +14,13 @@ exports.seed = function (knex) {
 
       if (!ENV.DB.ENTRY_COUNT_PER_TABLE) return;
 
+      // Test user
+      entries.push({
+        id: uuidv4(),
+        username: 'ldpostestuser',
+        password: 'password',
+      });
+
       for (let i = 0; i < ENV.DB.ENTRY_COUNT_PER_TABLE; i++) {
         entries.push({
           id: uuidv4(),
