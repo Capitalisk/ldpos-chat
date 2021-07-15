@@ -90,6 +90,24 @@
       // Initiate the connection to the server
       let socket = socketClusterClient.create();
 
+      let currentSubscription = { value: null };
+
+      let watchCurrentSubscription = new Proxy(currentSubscription, {
+        set: (t, k, v) => {
+          console.log(`${k} is now ${v} in currentSubscription`);
+
+          (async () => {
+            for await (const data of socket.subscribe(v)) {
+              console.log(data)
+              createMessage(data);
+            }
+          })();
+
+          t[k] = v;
+          return true;
+        },
+      });
+
       const messageHistory = [];
 
       const _parseDate = (d) => {
@@ -114,10 +132,8 @@
       const sendMessage = async (event) => {
         if (event.keyCode === 13) {
           try {
-            await socket.transmitPublish('chat', {
-              timestamp: _parseDate(Date.now()),
+            await socket.transmitPublish(watchCurrentSubscription.value, {
               message: event.target.value,
-              socketId: socket.id,
             });
             event.target.value = '';
           } catch (e) {
@@ -127,10 +143,9 @@
       };
 
       const getChannels = async () => {
-        console.log('hit channels');
         const channelElement = document.getElementById('channels');
         channelElement.innerHTML = '';
-        const channels = await socket.invoke('user/channel', {
+        const channels = await socket.invoke('users/channels', {
           id: socket.authToken.id,
         });
 
@@ -139,10 +154,16 @@
           const channel = channels[i];
           const li = document.createElement('li');
           li.addEventListener('click', async () => {
+            if (watchCurrentSubscription.value)
+              watchCurrentSubscription.value = null;
+
             document.getElementById('chat-history').innerHTML = '';
+
+            watchCurrentSubscription.value = channel.id;
             const messages = await socket.invoke('messages/channel', {
               id: channel.id,
             });
+
             console.log(messages);
             messages.forEach((m) => {
               createMessage(m);
@@ -155,7 +176,6 @@
       };
 
       const getFriends = async () => {
-        console.log('hit users');
         const users = await socket.invoke('users/friends');
         const channelElement = document.getElementById('channels');
         channelElement.innerHTML = '';
@@ -182,6 +202,7 @@
       };
 
       const createMessage = ({ username, createdAt, message }) => {
+        console.log(username, createdAt)
         const chatHistoryElement = document.getElementById('chat-history');
         const messageElement = document.createElement('div');
         messageElement.className = 'message';
@@ -193,19 +214,12 @@
       };
 
       const login = async () => {
-        console.log('hit login');
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const auth = await socket.invoke('login', { username, password });
 
         console.log(auth);
       };
-
-      (async () => {
-        for await (const data of socket.subscribe('chat')) {
-          createMessage(data);
-        }
-      })();
 
       (async () => {
         for await (let { error } of socket.listener('error')) {

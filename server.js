@@ -12,13 +12,6 @@ const logger = require('./system/logger');
 const fs = require('fs');
 const SCC_INSTANCE_ID = uuid.v4();
 
-process.env = {
-  ...process.env,
-  ...(process.env.NODE_ENV === 'development'
-    ? require('./env.development.json')
-    : require('./env.production.json')),
-};
-
 const knex = require('knex')(
   process.env.NODE_ENV === 'development'
     ? {
@@ -38,6 +31,20 @@ const knex = require('knex')(
       },
 );
 
+knex.migrate
+  .latest()
+  .then(function () {
+    return knex.seed.run();
+  })
+  .then(() => console.log('KNEX: Seeding done'));
+
+process.env = {
+  ...process.env,
+  ...(process.env.NODE_ENV === 'development'
+    ? require('./env.development.json')
+    : require('./env.production.json')),
+};
+
 let agOptions = {};
 
 if (process.env.SOCKETCLUSTER_OPTIONS) {
@@ -49,7 +56,8 @@ let httpServer = eetase(http.createServer());
 let agServer = socketClusterServer.attach(httpServer, agOptions);
 
 // Initialize middlewares
-middlewares.init(agServer);
+// TODO: Initialize this in a programatic manner
+middlewares.init(agServer, knex);
 
 let expressApp = express();
 if (process.env.NODE_ENV === 'development') {
@@ -77,7 +85,6 @@ expressApp.get('/health-check', (req, res) => {
     fs.readdir('./modules', null, (err, modules) => {
       if (err) throw new Error(err);
       if (!modules) return;
-      console.log(modules);
       for (let i = 0; i < modules.length; i++) {
         const m = modules[i];
         require(`./modules/${m}`).attach(agServer, socket, knex);

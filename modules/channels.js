@@ -1,8 +1,6 @@
 const attach = (agServer, socket, knex) => {
   (async () => {
     for await (const request of socket.procedure('user/channel')) {
-      console.log(request.data.id);
-
       const channels = await knex('usersChannels')
         .select('*')
         .leftJoin('users', 'usersChannels.userId', 'users.id')
@@ -10,7 +8,7 @@ const attach = (agServer, socket, knex) => {
         .where({
           userId: request.data.id,
         });
-      console.log(channels);
+
       request.end(channels);
     }
   })();
