@@ -43,7 +43,7 @@
   "readmeFilename": "README.md",
   "scripts": {
     "start": "node server.js",
-    "start:watch": "NODE_ENV=development nodemon server.js",
+    "start:watch": "NODE_ENV=development DEBUG=knex:query nodemon server.js",
     "start:docker": "./node_modules/nodemon/bin/nodemon.js /usr/src/app/server.js"
   }
 }
