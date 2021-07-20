@@ -3,12 +3,12 @@ const attach = (agServer, socket, knex) => {
     for await (const request of socket.procedure('users/channels')) {
       try {
         const channels = await knex
-          // .select('*')
-          .select([
-            'channels.id',
-            'channels.name',
-            knex.raw('ARRAY_AGG(messages.*)'),
-          ])
+          .select('*')
+          // .select([
+          //   'channels.id',
+          //   'channels.name',
+          //   knex.raw('ARRAY_AGG(messages.*)'),
+          // ])
           .from('usersChannels')
           .leftJoin('users', 'usersChannels.userId', 'users.id')
           .leftJoin('channels', 'usersChannels.channelId', 'channels.id')
@@ -41,6 +41,8 @@ const attach = (agServer, socket, knex) => {
           .where({
             userId: request.data.id,
           });
+
+        console.log(channels.toSQL())
 
         request.end(channels);
       } catch (e) {

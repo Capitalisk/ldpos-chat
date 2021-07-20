@@ -11,25 +11,8 @@ const middlewares = require('./system/middlewares');
 const logger = require('./system/logger');
 const fs = require('fs');
 const SCC_INSTANCE_ID = uuid.v4();
-
-const knex = require('knex')(
-  process.env.NODE_ENV === 'development'
-    ? {
-        client: 'sqlite3',
-        connection: {
-          filename: './dev.sqlite3',
-        },
-      }
-    : {
-        client: 'pg',
-        connection: {
-          host: '127.0.0.1',
-          user: 'your_database_user',
-          password: 'your_database_password',
-          database: 'myapp_test',
-        },
-      },
-);
+const config = require('./knexfile')();
+const knex = require('knex')(config[process.env.NODE_ENV]);
 
 knex.migrate
   .latest()

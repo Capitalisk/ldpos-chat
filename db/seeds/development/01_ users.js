@@ -1,10 +1,7 @@
 const uuidv4 = require('uuid').v4;
 const faker = require('faker');
 
-const ENV =
-  process.env.NODE_ENV === 'development'
-    ? require('../env.development.json')
-    : require('../env.production.json');
+const ENV = require('../../../env.development.json')
 
 exports.seed = function (knex) {
   return knex('users')
