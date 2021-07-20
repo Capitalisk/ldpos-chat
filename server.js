@@ -36,7 +36,8 @@ knex.migrate
   .then(function () {
     return knex.seed.run();
   })
-  .then(() => console.log('KNEX: Seeding done'));
+  .then(() => console.log('KNEX: Seeding done'))
+  .catch((e) => console.error(e));
 
 process.env = {
   ...process.env,

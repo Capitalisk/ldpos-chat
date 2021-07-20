@@ -13,7 +13,7 @@ exports.up = function (knex) {
     table
       .uuid('ownerId')
       .references('id')
-      .inTable('usersChannels')
+      .inTable('users')
       .onDelete('cascade');
 
     table
@@ -22,8 +22,6 @@ exports.up = function (knex) {
       .inTable('channels')
       .nullable()
       .onDelete('cascade');
-
-    table.timestamp('readAt').nullable();
 
     table.timestamp('createdAt').defaultTo(knex.fn.now());
     table.timestamp('updatedAt').defaultTo(knex.fn.now());

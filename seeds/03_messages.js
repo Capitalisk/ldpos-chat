@@ -27,7 +27,6 @@ exports.seed = function (knex) {
           message: faker.lorem.words(),
           toUserId: users[randomNumber(ENV.SEED.ENTRY_COUNT_PER_TABLE)].id,
           ownerId: users[randomNumber(ENV.SEED.ENTRY_COUNT_PER_TABLE)].id,
-          readAt: null
         });
       }
 
@@ -48,7 +47,6 @@ exports.seed = function (knex) {
           message: faker.lorem.words(),
           channelId: channels[randomNumber(ENV.SEED.ENTRY_COUNT_PER_TABLE)].id,
           ownerId: users[randomNumber(ENV.SEED.ENTRY_COUNT_PER_TABLE)].id,
-          readAt: null
         });
       }
 

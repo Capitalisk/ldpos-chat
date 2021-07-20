@@ -22,7 +22,6 @@ exports.seed = function (knex) {
         const user = users[idx];
         for (let i = 0; i < ENV.SEED.ENTRY_COUNT_PER_TABLE; i++) {
           entries.push({
-            id: uuidv4(),
             userId: user.id,
             channelId: channels[randomNumber(ENV.SEED.ENTRY_COUNT_PER_TABLE)].id,
           });

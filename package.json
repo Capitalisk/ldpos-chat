@@ -44,6 +44,9 @@
   "scripts": {
     "start": "node server.js",
     "start:watch": "NODE_ENV=development DEBUG=knex:query nodemon server.js",
-    "start:docker": "./node_modules/nodemon/bin/nodemon.js /usr/src/app/server.js"
+    "start:docker": "./node_modules/nodemon/bin/nodemon.js /usr/src/app/server.js",
+    "start:postgres:development": "docker run --name ldpos-chat-dev --restart always -p 5432:5432 -e POSTGRES_PASSWORD=ldpos -e POSTGRES_USER=ldpos POSTGRES_DB=ldpos_chat -d postgres:13-alpine",
+    "stop:postgres:development": "docker stop ldpos-chat-dev",
+    "remove:postgres:development": "docker rm ldpos-chat-dev"
   }
 }
